@@ -2,8 +2,10 @@ import numpy as np
 
 
 class Gen_Data_loader():
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, seq_length, unk):
         self.batch_size = batch_size
+        self.seq_length = seq_length
+        self.unk = unk
         self.token_stream = []
 
     def create_batches(self, data_file):
@@ -13,8 +15,12 @@ class Gen_Data_loader():
                 line = line.strip()
                 line = line.split()
                 parse_line = [int(x) for x in line]
-                if len(parse_line) == 20:
-                    self.token_stream.append(parse_line)
+                # unk padding
+                if len(parse_line) < self.seq_length:
+                    parse_line = parse_line.extend([self.unk] * (self.seq_length - len(parse_line)))
+                else:
+                    parse_line = parse_line[:self.seq_length]
+                self.token_stream.append(parse_line)
 
         self.num_batch = int(len(self.token_stream) / self.batch_size)
         self.token_stream = self.token_stream[:self.num_batch * self.batch_size]
