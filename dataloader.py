@@ -17,7 +17,7 @@ class Gen_Data_loader():
                 parse_line = [int(x) for x in line]
                 # unk padding
                 if len(parse_line) < self.seq_length:
-                    parse_line = parse_line.extend([self.unk] * (self.seq_length - len(parse_line)))
+                    parse_line.extend([self.unk] * (self.seq_length - len(parse_line)))
                 else:
                     parse_line = parse_line[:self.seq_length]
                 self.token_stream.append(parse_line)
