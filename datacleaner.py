@@ -19,10 +19,11 @@ def _tokenize(text):
     return sentence
 
 def main():
-    f = codecs.open("./save/raw_data.txt", "r", "utf-8")
-    g = codecs.open("./save/real_data.txt", "w", "utf-8")
+    f = codecs.open("./save/raw_tweet.txt", "r", "utf-8")
+    g = codecs.open("./save/parsed_tweet.txt", "w", "utf-8")
+    pattern = r"https?://[\w/:%#\$&\?\(\)~\.=\+\-]+"
     for line in f:
-        line = re.sub(r"http.*","",line)
+        line = re.sub(pattern, "", line)
         line.strip()
         sentence = _tokenize(line)
         g.write(u" ".join(sentence))
