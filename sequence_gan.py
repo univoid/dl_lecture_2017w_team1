@@ -8,6 +8,7 @@ from rollout import ROLLOUT
 from target_lstm import TARGET_LSTM
 from vocabulary import Vocab
 import cPickle
+from clock import Clock
 
 #########################################################################################
 #  Generator  Hyper-parameters
@@ -82,6 +83,8 @@ def pre_train_epoch(sess, trainable_model, data_loader):
 
 
 def main():
+    clock = Clock()
+    clock.start()
     random.seed(SEED)
     np.random.seed(SEED)
     assert START_TOKEN == 0
@@ -125,7 +128,8 @@ def main():
             print 'pre-train epoch ', epoch, 'test_loss ', test_loss
             buffer = 'epoch:\t'+ str(epoch) + '\tnll:\t' + str(test_loss) + '\n'
             log.write(buffer)
-
+    clock.check_HMS()
+    
     print 'Start pre-training discriminator...'
     # Train 3 epoch on the generated data and do this for 50 times
     for _ in range(50):
@@ -141,6 +145,7 @@ def main():
                     discriminator.dropout_keep_prob: dis_dropout_keep_prob
                 }
                 _ = sess.run(discriminator.train_op, feed)
+    clock.check_HMS()
 
     rollout = ROLLOUT(generator, 0.8)
 
@@ -183,7 +188,7 @@ def main():
                         discriminator.dropout_keep_prob: dis_dropout_keep_prob
                     }
                     _ = sess.run(discriminator.train_op, feed)
-
+    clock.check_HMS()
     log.close()
 
 
