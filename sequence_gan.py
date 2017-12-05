@@ -17,7 +17,7 @@ EMB_DIM = 32 # embedding dimension
 HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 40 # sequence length
 START_TOKEN = 0
-PRE_EPOCH_NUM = 1 # supervise (maximum likelihood estimation) epochs
+PRE_EPOCH_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
 BATCH_SIZE = 16
 
@@ -34,7 +34,7 @@ dis_batch_size = 16
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_BATCH = 1
+TOTAL_BATCH = 200
 parsed_tweet_file = 'save/parsed_tweet.txt'
 generated_tweet_file = 'save/generated_tweet_{}.txt'
 positive_file = 'save/real_data.txt'
@@ -132,7 +132,7 @@ def main():
     
     print 'Start pre-training discriminator...'
     # Train 3 epoch on the generated data and do this for 50 times
-    for _ in range(1):
+    for _ in range(50):
         generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
         dis_data_loader.load_train_data(positive_file, negative_file)
         for _ in range(3):
