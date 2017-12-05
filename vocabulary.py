@@ -14,6 +14,7 @@ class Vocab():
             sentences.append(line)
         self.dic.add_documents(sentences)
         f.close()
+        self.dic.id2token = {v:k for k, v in self.dic.token2id.items()}
     
     def word2id(self, input_file, output_file):
         f = codecs.open(input_file, 'r', 'utf-8')
@@ -31,7 +32,7 @@ class Vocab():
         g = codecs.open(output_file, 'w', 'utf-8')
         for line in f:
             line = line.strip().split()
-            line = map(lambda x: self.dic.id2token[int(x)], line)
+            line = map(lambda x: self.dic.id2token.get(int(x), u'#'), line)
             line = u" ".join(line) + u"\n"
             g.write(line)
         f.close()
