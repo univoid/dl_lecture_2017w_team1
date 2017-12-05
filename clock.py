@@ -2,14 +2,14 @@ import time
 
 class Clock():
     def __init__(self):
-        self.start = 0
+        self.start_time = 0
         
     def start(self):
-        self.start = time.time()
+        self.start_time = time.time()
         
     def check(self):
         now = time.time()
-        dif = now - self.start
+        dif = now - self.start_time
         return dif
         
     def check_HMS(self):
