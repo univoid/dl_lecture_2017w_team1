@@ -1,5 +1,11 @@
 import numpy as np
 
+def padding(line, seq_length, unk):
+    if len(line) < seq_length:
+        line.extend([unk] * (seq_length - len(line)))
+    else:
+        line = line[:seq_length]
+    return line
 
 class Gen_Data_loader():
     def __init__(self, batch_size, seq_length, unk):
@@ -16,11 +22,7 @@ class Gen_Data_loader():
                 line = line.split()
                 parse_line = [int(x) for x in line]
                 # unk padding
-                if len(parse_line) < self.seq_length:
-                    parse_line.extend([self.unk] * (self.seq_length - len(parse_line)))
-                else:
-                    parse_line = parse_line[:self.seq_length]
-                self.token_stream.append(parse_line)
+                self.token_stream.append(padding(parse_line, self.seq_length, self.unk))
 
         self.num_batch = int(len(self.token_stream) / self.batch_size)
         self.token_stream = self.token_stream[:self.num_batch * self.batch_size]
@@ -37,8 +39,10 @@ class Gen_Data_loader():
 
 
 class Dis_dataloader():
-    def __init__(self, batch_size):
+    def __init__(self, batch_size, seq_length, unk):
         self.batch_size = batch_size
+        self.seq_length = seq_length
+        self.unk = unk
         self.sentences = np.array([])
         self.labels = np.array([])
 
@@ -51,16 +55,23 @@ class Dis_dataloader():
                 line = line.strip()
                 line = line.split()
                 parse_line = [int(x) for x in line]
+                parse_line = padding(parse_line, self.seq_length, self.unk)
+                if len(parse_line) != 40:
+                    print("positive",len(parse_line))
                 positive_examples.append(parse_line)
         with open(negative_file)as fin:
             for line in fin:
                 line = line.strip()
                 line = line.split()
                 parse_line = [int(x) for x in line]
-                if len(parse_line) == 20:
-                    negative_examples.append(parse_line)
+                parse_line = padding(parse_line, self.seq_length, self.unk)
+                if len(parse_line) != 40:
+                    print("negative",len(parse_line))
+                negative_examples.append(parse_line)
+        num_negative = ((len(positive_examples)+len(negative_examples)) // 
+                        self.batch_size) * self.batch_size - len(positive_examples)
+        negative_examples = negative_examples[:num_negative]
         self.sentences = np.array(positive_examples + negative_examples)
-
         # Generate labels
         positive_labels = [[0, 1] for _ in positive_examples]
         negative_labels = [[1, 0] for _ in negative_examples]
@@ -73,8 +84,8 @@ class Dis_dataloader():
 
         # Split batches
         self.num_batch = int(len(self.labels) / self.batch_size)
-        self.sentences = self.sentences[:self.num_batch * self.batch_size]
-        self.labels = self.labels[:self.num_batch * self.batch_size]
+        #self.sentences = self.sentences[:self.num_batch * self.batch_size]
+        #self.labels = self.labels[:self.num_batch * self.batch_size]
         self.sentences_batches = np.split(self.sentences, self.num_batch, 0)
         self.labels_batches = np.split(self.labels, self.num_batch, 0)
 
