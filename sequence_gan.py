@@ -34,7 +34,7 @@ dis_batch_size = 16
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_BATCH = 200
+TOTAL_BATCH = 1
 parsed_tweet_file = 'save/parsed_tweet.txt'
 generated_tweet_file = 'save/generated_tweet_{}.txt'
 positive_file = 'save/real_data.txt'
@@ -132,7 +132,7 @@ def main():
     
     print 'Start pre-training discriminator...'
     # Train 3 epoch on the generated data and do this for 50 times
-    for _ in range(50):
+    for _ in range(1):
         generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
         dis_data_loader.load_train_data(positive_file, negative_file)
         for _ in range(3):
@@ -147,7 +147,7 @@ def main():
                 _ = sess.run(discriminator.train_op, feed)
     clock.check_HMS()
 
-    rollout = ROLLOUT(generator, 0.8)
+    rollout = ROLLOUT(generator, 0.8, SEQ_LENGTH)
 
     print '#########################################################################'
     print 'Start Adversarial Training...'
