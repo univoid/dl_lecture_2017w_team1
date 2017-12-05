@@ -4,7 +4,7 @@ import numpy as np
 
 
 class ROLLOUT(object):
-    def __init__(self, lstm, seq_length):
+    def __init__(self, lstm, update_rate, seq_length):
         self.lstm = lstm
         self.update_rate = update_rate
         self.seq_length = seq_length
