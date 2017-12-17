@@ -7,3 +7,4 @@ generator_sample.txt
 eval_file.txt
 real_data.txt
 generated_tweet_*.txt
+.DS_Store
