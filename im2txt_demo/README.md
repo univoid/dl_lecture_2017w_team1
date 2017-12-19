@@ -8,24 +8,26 @@ im2txt (https://github.com/tensorflow/models/tree/master/research/im2txt)
 https://docs.docker.com/engine/installation/
 
 #### Download pretrained models:
-Download https://drive.google.com/file/d/0Bw6m_66JSYLlRFVKQ2tGcUJaWjA/view
-Copy all files to the folder im2txt_pretrained
-#### build docker image
+1. Download https://drive.google.com/file/d/0Bw6m_66JSYLlRFVKQ2tGcUJaWjA/view
+
+2. Copy all files to the folder im2txt_pretrained.
+
+#### Build docker image
 ```
 cd im2txt_demo
 make build
 ```
 
-##### start container
+#### Start container
 ```
 make run
 ```
 
-##### build run_inference
+#### Build run_inference
 ```
 ./build_inference.sh
 ```
-##### get caption for image
+#### Generate caption for image
 Sample of offline picture:
 ```
 ./process_image.sh imgs/bikes.jpg
