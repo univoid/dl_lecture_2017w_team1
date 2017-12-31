@@ -1,3 +1,4 @@
+import argparse
 import numpy as np
 import tensorflow as tf
 import random
@@ -88,6 +89,13 @@ def main():
     random.seed(SEED)
     np.random.seed(SEED)
     assert START_TOKEN == 0
+    
+    parser = argparse.ArgumentParser(description='conditional SeqGAN')
+    parser.add_argument('--conditional', '-c', type=int, default=0,
+                        help='If you make SeqGAN conditional, set `-c` 1.')
+    args = parser.parse_args()
+    condition = args.conditional
+    
     
     vocab = Vocab()
     vocab.construct(parsed_tweet_file)
