@@ -43,6 +43,7 @@ generated_tweet_file = 'save/generated_tweet_{}.txt'
 generated_haiku_file = 'save/generated_haiku_{}.txt'
 generated_haiku_with_kigo_file = 'save/generated_haiku_with_kigo_{}.txt'
 positive_file = 'save/real_data.txt'
+positive_condition_file = 'save/real_condition_data.txt'
 negative_file = 'save/generator_sample.txt'
 eval_file = 'save/eval_file.txt'
 generated_num = 10000
@@ -100,15 +101,16 @@ def main():
     args = parser.parse_args()
     condition = args.conditional
     
-    
     vocab = Vocab()
-    vocab.construct(parsed_tweet_file)
-    vocab.word2id(parsed_tweet_file, positive_file)
+    vocab.construct(parsed_haiku_file)
+    vocab.word2id(parsed_haiku_file, positive_file)
     UNK = vocab.dic.token2id[u'<UNK>']
+    if condition:
+        vocab.word2id(parsed_kigo_file, positive_condition_file)
 
     gen_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, UNK)
     likelihood_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, UNK) # For testing
-    vocab_size = 5000
+    vocab_size = len(vocab.dic.token2id)
     dis_data_loader = Dis_dataloader(BATCH_SIZE, SEQ_LENGTH, UNK)
 
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
@@ -126,6 +128,8 @@ def main():
     # First, use the oracle model to provide the positive examples, which are sampled from the oracle data distribution
     # generate_samples(sess, target_lstm, BATCH_SIZE, generated_num, positive_file)
     gen_data_loader.create_batches(positive_file)
+    if condition:
+        gen_data_loader.create_cond_batches(positive_condition_file)
 
     log = open('save/experiment-log.txt', 'w')
     #  pre-train generator

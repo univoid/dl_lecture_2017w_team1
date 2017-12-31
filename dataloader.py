@@ -28,6 +28,17 @@ class Gen_Data_loader():
         self.token_stream = self.token_stream[:self.num_batch * self.batch_size]
         self.sequence_batch = np.split(np.array(self.token_stream), self.num_batch, 0)
         self.pointer = 0
+        
+    def create_cond_batches(self, data_file):
+        self.cond_stream = []
+        with open(data_file, 'r') as f:
+            for line in f:
+                line = line.strip()
+                line = line.split()
+                parse_line = [int(x) for x in line]
+                self.cond_stream.append(paddint(parse_line, , self.unk))
+                
+        self.num_batch = int(len())
 
     def next_batch(self):
         ret = self.sequence_batch[self.pointer]
