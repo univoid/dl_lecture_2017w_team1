@@ -37,7 +37,11 @@ dis_batch_size = 16
 #########################################################################################
 TOTAL_BATCH = 200
 parsed_tweet_file = 'save/parsed_tweet.txt'
+parsed_haiku_file = 'save/parsed_haiku.txt'
+parsed_kigo_file = 'save/parsed_kigo.txt'
 generated_tweet_file = 'save/generated_tweet_{}.txt'
+generated_haiku_file = 'save/generated_haiku_{}.txt'
+generated_haiku_with_kigo_file = 'save/generated_haiku_with_kigo_{}.txt'
 positive_file = 'save/real_data.txt'
 negative_file = 'save/generator_sample.txt'
 eval_file = 'save/eval_file.txt'
