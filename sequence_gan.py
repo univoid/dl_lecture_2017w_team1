@@ -26,8 +26,8 @@ BATCH_SIZE = 16
 #  Discriminator  Hyper-parameters
 #########################################################################################
 dis_embedding_dim = 64
-dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20]
-dis_num_filters = [100, 200, 200, 200, 200, 100, 100, 100, 100, 100, 160, 160]
+dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7]
+dis_num_filters = [100, 200, 200, 200, 200, 100, 100]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
 dis_batch_size = 16
@@ -114,8 +114,8 @@ def main():
     dis_data_loader = Dis_dataloader(BATCH_SIZE, SEQ_LENGTH, UNK)
 
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
-    target_params = cPickle.load(open('save/target_params.pkl'))
-    target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params) # The oracle model
+    # target_params = cPickle.load(open('save/target_params.pkl'))
+    # target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params) # The oracle model
 
     discriminator = Discriminator(sequence_length=SEQ_LENGTH, num_classes=2, vocab_size=vocab_size, embedding_size=dis_embedding_dim, 
                                 filter_sizes=dis_filter_sizes, num_filters=dis_num_filters, l2_reg_lambda=dis_l2_reg_lambda)
@@ -184,7 +184,7 @@ def main():
             buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
             print 'total_batch: ', total_batch, 'test_loss: ', test_loss
             log.write(buffer)
-            vocab.id2word(eval_file, generated_tweet_file.format(total_batch))
+            vocab.id2word(eval_file, generated_haiku_file.format(total_batch))
 
         # Update roll-out parameters
         rollout.update_params()

@@ -36,7 +36,7 @@ class Gen_Data_loader():
                 line = line.strip()
                 line = line.split()
                 parse_line = [int(x) for x in line]
-                self.cond_stream.append(paddint(parse_line, , self.unk))
+                self.cond_stream.append(padding(parse_line, 7, self.unk))
                 
         self.num_batch = int(len())
 
