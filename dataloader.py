@@ -8,9 +8,10 @@ def padding(line, seq_length, unk):
     return line
 
 class Gen_Data_loader():
-    def __init__(self, batch_size, seq_length, unk):
+    def __init__(self, batch_size, seq_length, cond_length, unk):
         self.batch_size = batch_size
         self.seq_length = seq_length
+        self.cond_length = cond_length
         self.unk = unk
         self.token_stream = []
 
@@ -36,13 +37,21 @@ class Gen_Data_loader():
                 line = line.strip()
                 line = line.split()
                 parse_line = [int(x) for x in line]
-                self.cond_stream.append(padding(parse_line, 7, self.unk))
+                self.cond_stream.append(padding(parse_line, self.cond_length, self.unk))
                 
-        self.num_batch = int(len())
+        self.num_batch = int(len(self.cond_stream) / self.batch_size)
+        self.cond_stream = self.cond_stream[:self.num_batch * self.batch_size]
+        self.cond_batch = np.split(np.array(self.cond_stream), self.num_batch, 0)
+        self.cond_pointer = 0
 
     def next_batch(self):
         ret = self.sequence_batch[self.pointer]
         self.pointer = (self.pointer + 1) % self.num_batch
+        return ret
+    
+    def next_cond_batch(self):
+        ret = self.cond_batch[self.cond_pointer]
+        self.cond_pointer = (self.cond_pointer + 1) % self.num_batch
         return ret
 
     def reset_pointer(self):

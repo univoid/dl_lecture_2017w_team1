@@ -96,7 +96,7 @@ class ROLLOUT(object):
             if i == 0:
                 rewards.append(ypred)
             else:
-                rewards[19] += ypred
+                rewards[self.seq_length - 1] += ypred
 
         rewards = np.transpose(np.array(rewards)) / (1.0 * rollout_num)  # batch_size x seq_length
         return rewards

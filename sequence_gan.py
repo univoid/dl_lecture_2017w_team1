@@ -17,6 +17,7 @@ from clock import Clock
 EMB_DIM = 32 # embedding dimension
 HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 17 # sequence length
+COND_LENGTH = 7 # condition length
 START_TOKEN = 0
 PRE_EPOCH_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
@@ -26,7 +27,7 @@ BATCH_SIZE = 16
 #  Discriminator  Hyper-parameters
 #########################################################################################
 dis_embedding_dim = 64
-dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7]
+dis_filter_sizes = [1, 2, 3, 4, 5, 6, 7] # each element should be less than SEQ_LENGTH
 dis_num_filters = [100, 200, 200, 200, 200, 100, 100]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
@@ -75,13 +76,15 @@ def target_loss(sess, target_lstm, data_loader):
     return np.mean(nll)
 
 
-def pre_train_epoch(sess, trainable_model, data_loader):
+def pre_train_epoch(sess, trainable_model, data_loader, cond=0):
     # Pre-train the generator using MLE for one epoch
     supervised_g_losses = []
     data_loader.reset_pointer()
 
     for it in xrange(data_loader.num_batch):
         batch = data_loader.next_batch()
+        if cond:
+            cond_batch = data_loader.next_cond_batch()
         _, g_loss = trainable_model.pretrain_step(sess, batch)
         supervised_g_losses.append(g_loss)
 
@@ -99,21 +102,19 @@ def main():
     parser.add_argument('--conditional', '-c', type=int, default=0,
                         help='If you make SeqGAN conditional, set `-c` 1.')
     args = parser.parse_args()
-    condition = args.conditional
+    cond = args.conditional
     
     vocab = Vocab()
     vocab.construct(parsed_haiku_file)
     vocab.word2id(parsed_haiku_file, positive_file)
     UNK = vocab.dic.token2id[u'<UNK>']
-    if condition:
-        vocab.word2id(parsed_kigo_file, positive_condition_file)
 
-    gen_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, UNK)
+    gen_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK)
     likelihood_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, UNK) # For testing
     vocab_size = len(vocab.dic.token2id)
     dis_data_loader = Dis_dataloader(BATCH_SIZE, SEQ_LENGTH, UNK)
 
-    generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN)
+    generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, COND_LENGTH, START_TOKEN, cond=cond)
     # target_params = cPickle.load(open('save/target_params.pkl'))
     # target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params) # The oracle model
 
@@ -128,7 +129,9 @@ def main():
     # First, use the oracle model to provide the positive examples, which are sampled from the oracle data distribution
     # generate_samples(sess, target_lstm, BATCH_SIZE, generated_num, positive_file)
     gen_data_loader.create_batches(positive_file)
-    if condition:
+
+    if cond:
+        vocab.word2id(parsed_kigo_file, positive_condition_file)
         gen_data_loader.create_cond_batches(positive_condition_file)
 
     log = open('save/experiment-log.txt', 'w')
@@ -136,14 +139,14 @@ def main():
     print 'Start pre-training...'
     log.write('pre-training...\n')
     for epoch in xrange(PRE_EPOCH_NUM):
-        loss = pre_train_epoch(sess, generator, gen_data_loader)
+        loss = pre_train_epoch(sess, generator, gen_data_loader, cond=cond)
         if epoch % 5 == 0:
             generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
             likelihood_data_loader.create_batches(eval_file)
-            test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
-            print 'pre-train epoch ', epoch, 'test_loss ', test_loss
-            buffer = 'epoch:\t'+ str(epoch) + '\tnll:\t' + str(test_loss) + '\n'
-            log.write(buffer)
+            # test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
+            # print 'pre-train epoch ', epoch, 'test_loss ', test_loss
+            # buffer = 'epoch:\t'+ str(epoch) + '\tnll:\t' + str(test_loss) + '\n'
+            # log.write(buffer)
     clock.check_HMS()
     
     print 'Start pre-training discriminator...'
@@ -180,10 +183,10 @@ def main():
         if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
             generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
             likelihood_data_loader.create_batches(eval_file)
-            test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
-            buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
-            print 'total_batch: ', total_batch, 'test_loss: ', test_loss
-            log.write(buffer)
+            # test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
+            # buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
+            # print 'total_batch: ', total_batch, 'test_loss: ', test_loss
+            # log.write(buffer)
             vocab.id2word(eval_file, generated_haiku_file.format(total_batch))
 
         # Update roll-out parameters
