@@ -6,5 +6,5 @@ experiment-log.txt
 generator_sample.txt
 eval_file.txt
 real_data.txt
-generated_tweet_*.txt
+generated_*.txt
 .DS_Store
