@@ -50,16 +50,29 @@ eval_file = 'save/eval_file.txt'
 generated_num = 10000
 
 
-def generate_samples(sess, trainable_model, batch_size, generated_num, output_file):
+def generate_samples(sess, trainable_model, batch_size, generated_num, output_file, cond, vocab):
     # Generate Samples
     generated_samples = []
-    for _ in range(int(generated_num / batch_size)):
-        generated_samples.extend(trainable_model.generate(sess))
+    if cond:
+        cond_samples = []
+        for _ in range(int(generated_num / batch_size)):
+            cond_batch = vocab.choice_cond(batch_size)
+            cond_samples.extend(cond_batch)
+            generated_samples.extend(trainable_model.generate(sess, cond=cond_batch))
+    else:
+        for _ in range(int(generated_num / batch_size)):
+            generated_samples.extend(trainable_model.generate(sess))
 
     with open(output_file, 'w') as fout:
-        for poem in generated_samples:
-            buffer = ' '.join([str(x) for x in poem]) + '\n'
-            fout.write(buffer)
+        if cond:
+            for c, poem in zip(cond_samples, generated_samples):
+                header = ' '.join([str(x) for x in c]+[str(vocab.dic.token2id[u','])]) + ' '
+                buffer = ' '.join([str(x) for x in poem]) + '\n'
+                fout.write(header + buffer)
+        else:
+            for poem in generated_samples:
+                buffer = ' '.join([str(x) for x in poem]) + '\n'
+                fout.write(buffer)
 
 
 def target_loss(sess, target_lstm, data_loader):
@@ -85,7 +98,9 @@ def pre_train_epoch(sess, trainable_model, data_loader, cond=0):
         batch = data_loader.next_batch()
         if cond:
             cond_batch = data_loader.next_cond_batch()
-        _, g_loss = trainable_model.pretrain_step(sess, batch)
+            _, g_loss = trainable_model.pretrain_step(sess, batch, cond=cond_batch)
+        else:
+            _, g_loss = trainable_model.pretrain_step(sess, batch)
         supervised_g_losses.append(g_loss)
 
     return np.mean(supervised_g_losses)
@@ -108,13 +123,14 @@ def main():
     vocab.construct(parsed_haiku_file)
     vocab.word2id(parsed_haiku_file, positive_file)
     UNK = vocab.dic.token2id[u'<UNK>']
+    COMMA = vocab.dic.token2id[u',']
 
     gen_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK)
     likelihood_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, UNK) # For testing
     vocab_size = len(vocab.dic.token2id)
     dis_data_loader = Dis_dataloader(BATCH_SIZE, SEQ_LENGTH, UNK)
 
-    generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, COND_LENGTH, START_TOKEN, cond=cond)
+    generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, COND_LENGTH, START_TOKEN, is_cond=cond)
     # target_params = cPickle.load(open('save/target_params.pkl'))
     # target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params) # The oracle model
 
@@ -132,6 +148,7 @@ def main():
 
     if cond:
         vocab.word2id(parsed_kigo_file, positive_condition_file)
+        vocab.load_cond(positive_condition_file)
         gen_data_loader.create_cond_batches(positive_condition_file)
 
     log = open('save/experiment-log.txt', 'w')
@@ -141,7 +158,7 @@ def main():
     for epoch in xrange(PRE_EPOCH_NUM):
         loss = pre_train_epoch(sess, generator, gen_data_loader, cond=cond)
         if epoch % 5 == 0:
-            generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
+            generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file, cond, vocab)
             likelihood_data_loader.create_batches(eval_file)
             # test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
             # print 'pre-train epoch ', epoch, 'test_loss ', test_loss
@@ -152,7 +169,7 @@ def main():
     print 'Start pre-training discriminator...'
     # Train 3 epoch on the generated data and do this for 50 times
     for _ in range(50):
-        generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
+        generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file, cond, vocab)
         dis_data_loader.load_train_data(positive_file, negative_file)
         for _ in range(3):
             dis_data_loader.reset_pointer()
@@ -174,14 +191,18 @@ def main():
     for total_batch in range(TOTAL_BATCH):
         # Train the generator for one step
         for it in range(1):
-            samples = generator.generate(sess)
+            if cond:
+                cond_batch = vocab.choice_cond(batch_size)
+                samples = generator.generate(sess, cond=cond_batch)
+            else
+                samples = generator.generate(sess)
             rewards = rollout.get_reward(sess, samples, 16, discriminator)
             feed = {generator.x: samples, generator.rewards: rewards}
             _ = sess.run(generator.g_updates, feed_dict=feed)
 
         # Test
         if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
-            generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file)
+            generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file, cond, vocab)
             likelihood_data_loader.create_batches(eval_file)
             # test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
             # buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
@@ -194,7 +215,7 @@ def main():
 
         # Train the discriminator
         for _ in range(5):
-            generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file)
+            generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file, cond, vocab)
             dis_data_loader.load_train_data(positive_file, negative_file)
 
             for _ in range(3):
