@@ -1,6 +1,7 @@
 from gensim.corpora.dictionary import Dictionary
 import codecs
 import numpy as np
+from utils import padding
 
 
 class Vocab():
@@ -18,18 +19,25 @@ class Vocab():
         f.close()
         self.dic.id2token = {v:k for k, v in self.dic.token2id.items()}
         
-    def load_cond(self, input_file):
+    def load_cond(self, input_file, cond_length, unk):
+        """Get a list of unique conditions"""
         f = codecs.open(input_file, 'r', 'utf-8')
         conditions = []
-        for line in f:
-            line = strip().split()
+        lines = f.readlines()
+        if lines[-1].strip()=='':
+            print("deleted the last element:", lines[-1])
+            lines=lines[:-1]
+        lines = list(set(lines))
+        for line in lines:
+            line = line.strip().split()
+            line = padding(line, cond_length, unk)
             if not line in conditions:
                 conditions.append(line)
-        self.cond = conditions
+        self.cond = np.array(conditions)
         self.n_cond = len(conditions)
         
     def choice_cond(self, num):
-        return np.random.choice(self.cond, num)
+        return self.cond[np.random.choice(len(self.cond), num)]
     
     def word2id(self, input_file, output_file):
         f = codecs.open(input_file, 'r', 'utf-8')
