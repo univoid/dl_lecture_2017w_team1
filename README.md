@@ -17,7 +17,24 @@
 （[本家のレポジトリ](https://github.com/LantaoYu/SeqGAN)より引用）
 
 ## How to use
-### 1.Twitterからデータ収集
+
+## 俳句生成
+
+### 条件なしの俳句生成
+
+```
+$ python sequence_gan.py
+```
+
+### 条件ありの俳句生成
+
+```
+$ python sequence_gan.py -c 1
+```
+
+## ツイート生成
+
+### 1. Twitterからデータ収集
 
 ```
 $ python timeline.py
@@ -30,7 +47,7 @@ $ python timeline.py
 
 39〜41行目を削除して使ってください。
 
-### 2.日本語のトークナイズ
+### 2. 日本語のトークナイズ
 
 ```
 $ python datacleaner.py
@@ -40,7 +57,10 @@ $ python datacleaner.py
 
 出力先は```save/parsed_tweet.py```
 
-### 3.SeqGANの学習
+### 3. SeqGANの学習
+
+sequence_gan.pyのL123,124のparsed_haiku_fileをparsed_tweet_fileに書き換える。
+sequence_gan.pyのL214のgenerated_haiku_fileをgenerated_tweet_fileに書き換える。
 
 ```
 $ python sequence_gan.py
