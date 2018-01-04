@@ -1,11 +1,6 @@
 import numpy as np
+from utils import padding
 
-def padding(line, seq_length, unk):
-    if len(line) < seq_length:
-        line.extend([unk] * (seq_length - len(line)))
-    else:
-        line = line[:seq_length]
-    return line
 
 class Gen_Data_loader():
     def __init__(self, batch_size, seq_length, cond_length, unk):
