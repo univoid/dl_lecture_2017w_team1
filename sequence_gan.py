@@ -148,7 +148,7 @@ def main():
 
     if cond:
         vocab.word2id(parsed_kigo_file, positive_condition_file)
-        vocab.load_cond(positive_condition_file)
+        vocab.load_cond(positive_condition_file, COND_LENGTH, UNK)
         gen_data_loader.create_cond_batches(positive_condition_file)
 
     log = open('save/experiment-log.txt', 'w')
