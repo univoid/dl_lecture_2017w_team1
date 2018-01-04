@@ -76,8 +76,6 @@ class Dis_dataloader():
                 line = line.split()
                 parse_line = [int(x) for x in line]
                 parse_line = padding(parse_line, self.seq_length, self.unk)
-                if len(parse_line) != 40:
-                    print("positive",len(parse_line))
                 positive_examples.append(parse_line)
         with open(negative_file)as fin:
             for line in fin:
@@ -85,8 +83,6 @@ class Dis_dataloader():
                 line = line.split()
                 parse_line = [int(x) for x in line]
                 parse_line = padding(parse_line, self.seq_length, self.unk)
-                if len(parse_line) != 40:
-                    print("negative",len(parse_line))
                 negative_examples.append(parse_line)
         num_negative = ((len(positive_examples)+len(negative_examples)) // 
                         self.batch_size) * self.batch_size - len(positive_examples)
