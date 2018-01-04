@@ -126,7 +126,7 @@ def main():
     COMMA = vocab.dic.token2id[u',']
 
     gen_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK)
-    likelihood_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, UNK) # For testing
+    # likelihood_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK) # For testing
     vocab_size = len(vocab.dic.token2id)
     dis_data_loader = Dis_dataloader(BATCH_SIZE, SEQ_LENGTH, UNK)
 
@@ -159,7 +159,7 @@ def main():
         loss = pre_train_epoch(sess, generator, gen_data_loader, cond=cond)
         if epoch % 5 == 0:
             generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file, cond, vocab)
-            likelihood_data_loader.create_batches(eval_file)
+            # likelihood_data_loader.create_batches(eval_file)
             # test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
             # print 'pre-train epoch ', epoch, 'test_loss ', test_loss
             # buffer = 'epoch:\t'+ str(epoch) + '\tnll:\t' + str(test_loss) + '\n'
@@ -194,7 +194,7 @@ def main():
             if cond:
                 cond_batch = vocab.choice_cond(batch_size)
                 samples = generator.generate(sess, cond=cond_batch)
-            else
+            else:
                 samples = generator.generate(sess)
             rewards = rollout.get_reward(sess, samples, 16, discriminator)
             feed = {generator.x: samples, generator.rewards: rewards}
@@ -203,12 +203,15 @@ def main():
         # Test
         if total_batch % 5 == 0 or total_batch == TOTAL_BATCH - 1:
             generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file, cond, vocab)
-            likelihood_data_loader.create_batches(eval_file)
+            # likelihood_data_loader.create_batches(eval_file)
             # test_loss = target_loss(sess, target_lstm, likelihood_data_loader)
             # buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
             # print 'total_batch: ', total_batch, 'test_loss: ', test_loss
             # log.write(buffer)
-            vocab.id2word(eval_file, generated_haiku_file.format(total_batch))
+            if cond:
+                vocab.id2word(eval_file, generated_haiku_with_kigo_file.format(total_batch))
+            else:
+                vocab.id2word(eval_file, generated_haiku_file.format(total_batch))
 
         # Update roll-out parameters
         rollout.update_params()
