@@ -1,10 +1,12 @@
 from gensim.corpora.dictionary import Dictionary
 import codecs
+import numpy as np
+
 
 class Vocab():
     def __init__(self):
         self.dic = Dictionary()
-        self.dic.add_documents([[u'<UNK>']])
+        self.dic.add_documents([[u'<UNK>', u',']])
         
     def construct(self, input_file):
         f = codecs.open(input_file, 'r', 'utf-8')
@@ -15,6 +17,19 @@ class Vocab():
         self.dic.add_documents(sentences)
         f.close()
         self.dic.id2token = {v:k for k, v in self.dic.token2id.items()}
+        
+    def load_cond(self, input_file):
+        f = codecs.open(input_file, 'r', 'utf-8')
+        conditions = []
+        for line in f:
+            line = strip().split()
+            if not line in conditions:
+                conditions.append(line)
+        self.cond = conditions
+        self.n_cond = len(conditions)
+        
+    def choice_cond(self, num):
+        return np.random.choice(self.cond, num)
     
     def word2id(self, input_file, output_file):
         f = codecs.open(input_file, 'r', 'utf-8')
