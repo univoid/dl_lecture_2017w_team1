@@ -6,5 +6,6 @@ experiment-log.txt
 generator_sample.txt
 eval_file.txt
 real_data.txt
+real_condition_data.txt
 generated_*.txt
 .DS_Store
