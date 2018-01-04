@@ -66,6 +66,8 @@ def main(_):
     # beam search parameters. See caption_generator.py for a description of the
     # available beam search parameters.
     generator = caption_generator.CaptionGenerator(model, vocab)
+    from googletrans import Translator
+    translatorGuo = Translator()
 
     for filename in filenames:
       with tf.gfile.GFile(filename, "r") as f:
@@ -76,6 +78,7 @@ def main(_):
         # Ignore begin and end words.
         sentence = [vocab.id_to_word(w) for w in caption.sentence[1:-1]]
         sentence = " ".join(sentence)
+        print(translatorGuo.translate(sentence, src='en', dest='ja').text.encode('utf-8'))
         print("  %d) %s (p=%f)" % (i, sentence, math.exp(caption.logprob)))
 
 
