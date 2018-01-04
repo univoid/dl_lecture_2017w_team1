@@ -39,9 +39,9 @@ class Generator(object):
             normalisers = tf.count_nonzero(
                 tf.count_nonzero(self.cond_vector, axis=2, keep_dims=False, dtype=tf.float32),
                 axis=1, keep_dims=True, dtype=tf.float32)
-            self.cond_state = sums / normalisers
+            self.average_cond_vector = sums / normalisers
             self.h0 = tf.zeros([self.batch_size, self.hidden_dim])
-            self.h0 = tf.stack([self.cond_hidden, self.h0]) # previous_hidden_state, c_prev
+            self.h0 = tf.stack([self.average_cond_vector, self.h0]) # previous_hidden_state, c_prev
         else:
             # Initial states
             self.h0 = tf.zeros([self.batch_size, self.hidden_dim])
