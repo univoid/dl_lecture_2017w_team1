@@ -192,12 +192,14 @@ def main():
         # Train the generator for one step
         for it in range(1):
             if cond:
-                cond_batch = vocab.choice_cond(batch_size)
+                cond_batch = vocab.choice_cond(BATCH_SIZE)
                 samples = generator.generate(sess, cond=cond_batch)
             else:
                 samples = generator.generate(sess)
             rewards = rollout.get_reward(sess, samples, 16, discriminator)
             feed = {generator.x: samples, generator.rewards: rewards}
+            if cond:
+                feed[generator.cond: cond_batch]
             _ = sess.run(generator.g_updates, feed_dict=feed)
 
         # Test
