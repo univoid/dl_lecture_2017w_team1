@@ -199,7 +199,7 @@ def main():
             rewards = rollout.get_reward(sess, samples, 16, discriminator)
             feed = {generator.x: samples, generator.rewards: rewards}
             if cond:
-                feed[generator.cond: cond_batch]
+                feed[generator.cond] = cond_batch
             _ = sess.run(generator.g_updates, feed_dict=feed)
 
         # Test
