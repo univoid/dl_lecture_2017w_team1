@@ -19,7 +19,7 @@ HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 17 # sequence length
 COND_LENGTH = 7 # condition length
 START_TOKEN = 0
-PRE_EPOCH_NUM = 120 # supervise (maximum likelihood estimation) epochs
+PRE_EPOCH_GEN_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
 BATCH_SIZE = 16
 
@@ -32,17 +32,18 @@ dis_num_filters = [100, 200, 200, 200, 200, 100, 100]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
 dis_batch_size = 16
+PRE_EPOCH_DIS_NUM = 50
 
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
 TOTAL_BATCH = 200
 parsed_tweet_file = 'save/parsed_tweet.txt'
-parsed_haiku_file = 'save/parsed_haiku.txt'
-parsed_kigo_file = 'save/parsed_kigo.txt'
+parsed_haiku_file = 'save/kanji_haiku.txt'
+parsed_kigo_file = 'save/kanji_kigo.txt'
 generated_tweet_file = 'save/generated_tweet_{}.txt'
-generated_haiku_file = 'save/generated_haiku_{}.txt'
-generated_haiku_with_kigo_file = 'save/generated_haiku_with_kigo_{}.txt'
+generated_haiku_file = 'save/kanji_generated_haiku_{}.txt'
+generated_haiku_with_kigo_file = 'save/kanji_generated_haiku_with_kigo_{}.txt'
 positive_file = 'save/real_data.txt'
 positive_condition_file = 'save/real_condition_data.txt'
 negative_file = 'save/generator_sample.txt'
@@ -155,7 +156,7 @@ def main():
     #  pre-train generator
     print 'Start pre-training...'
     log.write('pre-training...\n')
-    for epoch in xrange(PRE_EPOCH_NUM):
+    for epoch in xrange(PRE_EPOCH_GEN_NUM):
         loss = pre_train_epoch(sess, generator, gen_data_loader, cond=cond)
         if epoch % 5 == 0:
             generate_samples(sess, generator, BATCH_SIZE, generated_num, eval_file, cond, vocab)
@@ -168,7 +169,7 @@ def main():
     
     print 'Start pre-training discriminator...'
     # Train 3 epoch on the generated data and do this for 50 times
-    for _ in range(50):
+    for _ in range(PRE_EPOCH_DIS_NUM):
         generate_samples(sess, generator, BATCH_SIZE, generated_num, negative_file, cond, vocab)
         dis_data_loader.load_train_data(positive_file, negative_file)
         for _ in range(3):

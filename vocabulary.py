@@ -40,11 +40,21 @@ class Vocab():
         return self.cond[np.random.choice(len(self.cond), num)]
     
     def word2id(self, input_file, output_file):
+        def get_id(dic, key):
+            if key in dic:
+                return str(dic[key])
+            else:
+                ret=[]
+                key=list(key)
+                for k in key:
+                    ret.append(str(dic.get(k, 0)))
+                return u" ".join(ret)
+            
         f = codecs.open(input_file, 'r', 'utf-8')
         g = open(output_file, 'w')
         for line in f:
             line = line.strip().split()
-            line = map(lambda x: str(self.dic.token2id[x]), line)
+            line = map(lambda x: get_id(self.dic.token2id, x), line)
             line = u" ".join(line) + u"\n"
             g.write(line)
         f.close()
