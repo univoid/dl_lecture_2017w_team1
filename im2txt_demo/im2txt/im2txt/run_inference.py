@@ -114,7 +114,7 @@ def main(_):
       
 
 # from keyword to kigo
-def to_kigo(words, top_n=5000):
+def to_kigo(words, top_n=100):
     import numpy as np
     import pandas as pd
     from gensim.models import word2vec
@@ -125,18 +125,30 @@ def to_kigo(words, top_n=5000):
 
     kigo = df.kigo.values
 
+    # get max one
     idx = 0
     max_similarity = 0
     for word in words:
-        word = word.decode('utf-8')
-        try:
-          similarities = model.wv.similarity(kigo, word)
-          if similarities.max() >= max_similarity:
-            idx = similarities.argmax()
-        except Exception:
-          pass
-        
-    
+      word = word.decode('utf-8')
+      try:
+        similarities = model.wv.similarity(kigo, word)
+        if similarities.max() > max_similarity:
+          idx = similarities.argmax()
+          max_similarity = similarities.max()
+      except Exception:
+        pass
+
+    # # get avg one
+    # acc_similarities = np.zeros(kigo.shape[0])
+    # for word in words:
+    #   word = word.decode('utf-8')
+    #   try:
+    #     similarities = model.wv.similarity(kigo, word)
+    #     acc_similarities = np.add(acc_similarities, similarities)
+    #   except Exception:
+    #     pass
+    # idx = acc_similarities.argmax()
+
     return(kigo[idx]).encode('utf-8')
 
 
