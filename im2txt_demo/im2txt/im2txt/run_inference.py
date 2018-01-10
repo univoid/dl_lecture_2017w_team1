@@ -105,10 +105,39 @@ def main(_):
             keywords.append(result[0].text.encode('utf-8'))
             
       keywords = set(keywords)
-      print("keywords:")
+      print("Keywords:")
       for keyword in keywords:
         print(keyword)
+      print("Kigo:")
+      print(to_kigo(keywords))
 
+      
+
+# from keyword to kigo
+def to_kigo(words, top_n=5000):
+    import numpy as np
+    import pandas as pd
+    from gensim.models import word2vec
+    model = word2vec.Word2Vec.load('word2vec.gensim.model')
+    df = pd.read_csv('kigo.csv', encoding = 'utf8')
+    df = df.iloc[:top_n, :]
+    V = df.drop(['kigo', 'n'], axis=1).values
+
+    kigo = df.kigo.values
+
+    idx = 0
+    max_similarity = 0
+    for word in words:
+        word = word.decode('utf-8')
+        try:
+          similarities = model.wv.similarity(kigo, word)
+          if similarities.max() >= max_similarity:
+            idx = similarities.argmax()
+        except Exception:
+          pass
+        
+    
+    return(kigo[idx]).encode('utf-8')
 
 
 if __name__ == "__main__":
