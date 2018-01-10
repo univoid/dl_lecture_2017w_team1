@@ -9,3 +9,10 @@ real_data.txt
 real_condition_data.txt
 generated_*.txt
 .DS_Store
+.vscode
+.bash_history
+.ipython
+.oracle_jre_usage/
+.viminfo
+im2txt_pretrained/*
+
