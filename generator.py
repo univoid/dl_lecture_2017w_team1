@@ -20,7 +20,7 @@ class Generator(object):
         self.d_params = []
         self.temperature = 1.0
         self.grad_clip = 5.0
-
+        
         self.expected_reward = tf.Variable(tf.zeros([self.sequence_length]))
 
         with tf.variable_scope('generator'):

@@ -1,0 +1,2 @@
+model_checkpoint_path: "haiku_generator"
+all_model_checkpoint_paths: "haiku_generator"

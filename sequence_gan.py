@@ -9,6 +9,7 @@ from rollout import ROLLOUT
 from target_lstm import TARGET_LSTM
 from vocabulary import Vocab
 import cPickle
+import pickle
 from clock import Clock
 
 #########################################################################################
@@ -19,7 +20,7 @@ HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 17 # sequence length
 COND_LENGTH = 7 # condition length
 START_TOKEN = 0
-PRE_EPOCH_GEN_NUM = 120 # supervise (maximum likelihood estimation) epochs
+PRE_EPOCH_GEN_NUM = 1 # supervise (maximum likelihood estimation) epochs
 SEED = 88
 BATCH_SIZE = 16
 
@@ -32,12 +33,12 @@ dis_num_filters = [100, 200, 200, 200, 200, 100, 100]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
 dis_batch_size = 16
-PRE_EPOCH_DIS_NUM = 50
+PRE_EPOCH_DIS_NUM = 1
 
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_BATCH = 200
+TOTAL_BATCH = 1
 parsed_tweet_file = 'save/parsed_tweet.txt'
 parsed_haiku_file = 'save/kanji_haiku.txt'
 parsed_kigo_file = 'save/kanji_kigo.txt'
@@ -129,6 +130,8 @@ def main():
     gen_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK)
     # likelihood_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK) # For testing
     vocab_size = len(vocab.dic.token2id)
+    with open('save/token2id.pickle', 'w') as f:
+        pickle.dump(vocab.dic.token2id, f)
     dis_data_loader = Dis_dataloader(BATCH_SIZE, SEQ_LENGTH, UNK)
 
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, COND_LENGTH, START_TOKEN, is_cond=cond)
@@ -235,6 +238,8 @@ def main():
                     }
                     _ = sess.run(discriminator.train_op, feed)
     clock.check_HMS()
+    saver = tf.train.Saver()
+    saver.save(sess, "save/haiku_generator")
     log.close()
 
 
