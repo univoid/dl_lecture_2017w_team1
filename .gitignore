@@ -15,4 +15,4 @@ generated_*.txt
 .oracle_jre_usage/
 .viminfo
 im2txt_pretrained/*
-
+kanji_generated_haiku_*.txt
