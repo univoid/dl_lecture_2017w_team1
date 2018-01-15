@@ -20,7 +20,7 @@ HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 17 # sequence length
 COND_LENGTH = 7 # condition length
 START_TOKEN = 0
-PRE_EPOCH_GEN_NUM = 1 # supervise (maximum likelihood estimation) epochs
+PRE_EPOCH_GEN_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
 BATCH_SIZE = 16
 
@@ -33,12 +33,12 @@ dis_num_filters = [100, 200, 200, 200, 200, 100, 100]
 dis_dropout_keep_prob = 0.75
 dis_l2_reg_lambda = 0.2
 dis_batch_size = 16
-PRE_EPOCH_DIS_NUM = 1
+PRE_EPOCH_DIS_NUM = 50
 
 #########################################################################################
 #  Basic Training Parameters
 #########################################################################################
-TOTAL_BATCH = 1
+TOTAL_BATCH = 200
 parsed_tweet_file = 'save/parsed_tweet.txt'
 parsed_haiku_file = 'save/kanji_haiku.txt'
 parsed_kigo_file = 'save/kanji_kigo.txt'
@@ -214,10 +214,11 @@ def main():
             # buffer = 'epoch:\t' + str(total_batch) + '\tnll:\t' + str(test_loss) + '\n'
             # print 'total_batch: ', total_batch, 'test_loss: ', test_loss
             # log.write(buffer)
-            if cond:
-                vocab.id2word(eval_file, generated_haiku_with_kigo_file.format(total_batch))
-            else:
-                vocab.id2word(eval_file, generated_haiku_file.format(total_batch))
+            if total_batch % 20 == 0 or total_batch == TOTAL_BATCH - 1:
+                if cond:
+                    vocab.id2word(eval_file, generated_haiku_with_kigo_file.format(total_batch))
+                else:
+                    vocab.id2word(eval_file, generated_haiku_file.format(total_batch))
 
         # Update roll-out parameters
         rollout.update_params()
