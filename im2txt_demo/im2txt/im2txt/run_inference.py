@@ -108,8 +108,14 @@ def main(_):
       print("Keywords:")
       for keyword in keywords:
         print(keyword)
+
+      kigo = to_kigo(keywords)
       print("Kigo:")
-      print(to_kigo(keywords))
+      print(kigo)
+
+      import json
+      with open('kigo.json', 'w')as outfile:
+        json.dump(kigo, outfile)
 
       
 
