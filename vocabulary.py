@@ -29,7 +29,7 @@ class Vocab():
             lines=lines[:-1]
         lines = list(set(lines))
         for line in lines:
-            line = line.strip().split()
+            line = map(int, line.strip().split())
             line = padding(line, cond_length, unk)
             if not line in conditions:
                 conditions.append(line)

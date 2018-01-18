@@ -75,13 +75,15 @@ class ROLLOUT(object):
         self.gen_x = self.gen_x.stack()  # seq_length x batch_size
         self.gen_x = tf.transpose(self.gen_x, perm=[1, 0])  # batch_size x seq_length
 
-    def get_reward(self, sess, input_x, rollout_num, discriminator):
+    def get_reward(self, sess, input_x, rollout_num, discriminator, cond=None):
         rewards = []
         for i in range(rollout_num):
             for given_num in range(1, self.seq_length):
                 feed = {self.x: input_x, self.given_num: given_num}
                 samples = sess.run(self.gen_x, feed)
                 feed = {discriminator.input_x: samples, discriminator.dropout_keep_prob: 1.0}
+                if cond is not None:
+                    feed[discriminator.cond] = cond
                 ypred_for_auc = sess.run(discriminator.ypred_for_auc, feed)
                 ypred = np.array([item[1] for item in ypred_for_auc])
                 if i == 0:
@@ -91,6 +93,8 @@ class ROLLOUT(object):
 
             # the last token reward
             feed = {discriminator.input_x: input_x, discriminator.dropout_keep_prob: 1.0}
+            if cond is not None:
+                feed[discriminator.cond] = cond
             ypred_for_auc = sess.run(discriminator.ypred_for_auc, feed)
             ypred = np.array([item[1] for item in ypred_for_auc])
             if i == 0:

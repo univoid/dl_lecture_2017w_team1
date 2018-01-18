@@ -18,7 +18,7 @@ from clock import Clock
 EMB_DIM = 32 # embedding dimension
 HIDDEN_DIM = 32 # hidden state dimension of lstm cell
 SEQ_LENGTH = 17 # sequence length
-COND_LENGTH = 7 # condition length
+COND_LENGTH = 1 # condition length
 START_TOKEN = 0
 PRE_EPOCH_GEN_NUM = 120 # supervise (maximum likelihood estimation) epochs
 SEED = 88
@@ -40,16 +40,18 @@ PRE_EPOCH_DIS_NUM = 50
 #########################################################################################
 TOTAL_BATCH = 200
 parsed_tweet_file = 'save/parsed_tweet.txt'
-parsed_haiku_file = 'save/kanji_haiku.txt'
-parsed_kigo_file = 'save/kanji_kigo.txt'
+parsed_haiku_file = 'save/last_haiku.txt'
+parsed_kigo_file = 'save/last_kigo.txt'
 generated_tweet_file = 'save/generated_tweet_{}.txt'
 generated_haiku_file = 'save/kanji_generated_haiku_{}.txt'
-generated_haiku_with_kigo_file = 'save/kanji_generated_haiku_with_kigo_{}.txt'
+generated_haiku_with_kigo_file = 'save/conddis_kanji_generated_haiku_with_kigo_{}.txt'
 positive_file = 'save/real_data.txt'
 positive_condition_file = 'save/real_condition_data.txt'
 negative_file = 'save/generator_sample.txt'
 eval_file = 'save/eval_file.txt'
 generated_num = 10000
+output_token2id = 'save/conddis_token2id.pickle'
+output_generator = 'save/conddis_haiku_generator'
 
 
 def generate_samples(sess, trainable_model, batch_size, generated_num, output_file, cond, vocab):
@@ -130,7 +132,7 @@ def main():
     gen_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK)
     # likelihood_data_loader = Gen_Data_loader(BATCH_SIZE, SEQ_LENGTH, COND_LENGTH, UNK) # For testing
     vocab_size = len(vocab.dic.token2id)
-    with open('save/token2id.pickle', 'w') as f:
+    with open(output_token2id, 'w') as f:
         pickle.dump(vocab.dic.token2id, f)
     dis_data_loader = Dis_dataloader(BATCH_SIZE, SEQ_LENGTH, UNK)
 
@@ -138,8 +140,8 @@ def main():
     # target_params = cPickle.load(open('save/target_params.pkl'))
     # target_lstm = TARGET_LSTM(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, START_TOKEN, target_params) # The oracle model
 
-    discriminator = Discriminator(sequence_length=SEQ_LENGTH, num_classes=2, vocab_size=vocab_size, embedding_size=dis_embedding_dim, 
-                                filter_sizes=dis_filter_sizes, num_filters=dis_num_filters, l2_reg_lambda=dis_l2_reg_lambda)
+    discriminator = Discriminator(sequence_length=SEQ_LENGTH, cond_length=COND_LENGTH, num_classes=2, vocab_size=vocab_size, batch_size=BATCH_SIZE, embedding_size=dis_embedding_dim, 
+                                filter_sizes=dis_filter_sizes, num_filters=dis_num_filters, l2_reg_lambda=dis_l2_reg_lambda, is_cond=cond)
 
     config = tf.ConfigProto()
     config.gpu_options.allow_growth = True
@@ -198,9 +200,10 @@ def main():
             if cond:
                 cond_batch = vocab.choice_cond(BATCH_SIZE)
                 samples = generator.generate(sess, cond=cond_batch)
+                rewards = rollout.get_reward(sess, samples, 16, discriminator, cond=cond_batch)
             else:
                 samples = generator.generate(sess)
-            rewards = rollout.get_reward(sess, samples, 16, discriminator)
+                rewards = rollout.get_reward(sess, samples, 16, discriminator)
             feed = {generator.x: samples, generator.rewards: rewards}
             if cond:
                 feed[generator.cond] = cond_batch
@@ -240,7 +243,7 @@ def main():
                     _ = sess.run(discriminator.train_op, feed)
     clock.check_HMS()
     saver = tf.train.Saver()
-    saver.save(sess, "save/haiku_generator")
+    saver.save(sess, output_generator)
     log.close()
 
 
