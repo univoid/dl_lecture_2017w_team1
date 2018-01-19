@@ -1,5 +1,5 @@
 # coding: utf-8
-
+import os
 import re
 import pickle
 import numpy as np
@@ -32,8 +32,9 @@ dis_batch_size = 16
 #########################################################################################
 #  Other Hyper-parameters
 #########################################################################################
-path_to_token2id = 'save/conddis_token2id.pickle'
-path_to_generator = 'save/conddis_haiku_generator'
+CUR_DIR = os.path.dirname(os.path.abspath(__file__))
+path_to_token2id = '/home/ec2-user/git/Haiku/haiku/generate/dl_lecture_2017w_team1/save/conddis_token2id.pickle'
+path_to_generator = '/home/ec2-user/git/Haiku/haiku/generate/dl_lecture_2017w_team1/save/conddis_haiku_generator'
 
 
 def get_haiku_conddis(kigo):
@@ -43,10 +44,11 @@ def get_haiku_conddis(kigo):
     UNK = token2id.get('<UNK>', 0)
     
     generator = Generator(vocab_size, BATCH_SIZE, EMB_DIM, HIDDEN_DIM, SEQ_LENGTH, COND_LENGTH, START_TOKEN, is_cond=1)
-    discriminator = Discriminator(sequence_length=SEQ_LENGTH, cond_length=COND_LENGTH, num_classes=2, vocab_size=vocab_size, embedding_size=dis_embedding_dim, 
+    discriminator = Discriminator(sequence_length=SEQ_LENGTH, cond_length=COND_LENGTH, num_classes=2, vocab_size=vocab_size, batch_size=BATCH_SIZE, embedding_size=dis_embedding_dim, 
                                 filter_sizes=dis_filter_sizes, num_filters=dis_num_filters, l2_reg_lambda=dis_l2_reg_lambda, is_cond=1)
     
     sess = tf.Session()
+    sess.run(tf.global_variables_initializer())
     saver = tf.train.Saver()
     saver.restore(sess, path_to_generator)
     
@@ -55,7 +57,7 @@ def get_haiku_conddis(kigo):
     cond = map(lambda x: token2id.get(x, 0), [kigo])
     cond = np.array(padding(cond, COND_LENGTH, UNK)*BATCH_SIZE).reshape(BATCH_SIZE, COND_LENGTH)
     generated_sequences = generator.generate(sess, cond=cond)
-    
+    sess.close()
     id2token = {k:v for v,k in token2id.items()}
     generated_haikus = map(lambda y: map(lambda x: id2token.get(x, '<UNK>'), y), generated_sequences)
     
