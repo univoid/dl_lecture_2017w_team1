@@ -1,0 +1,14 @@
+/* result.htmlのCSSはココ */
+
+.tryagain{
+	margin-top: 15px;
+}
+
+#ad{
+	margin-top: 45px;
+
+}
+
+#yourface{
+	object-fit: contain;
+}
